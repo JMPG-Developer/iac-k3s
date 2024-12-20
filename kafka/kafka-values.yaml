@@ -1,0 +1,9 @@
+zookeeper:
+  replicaCount: 3
+
+kafka:
+  replicaCount: 3
+  service:
+    type: NodePort
+  auth:
+    enabled: false
