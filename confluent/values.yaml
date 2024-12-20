@@ -1,0 +1,25 @@
+controlCenter:
+  enabled: true
+  replicas: 1
+  configurationOverrides:
+    confluent.controlcenter.connect.cluster: "http://connect:8083"
+    confluent.controlcenter.schema.registry: "http://schema-registry:8081"
+    confluent.controlcenter.kafka.bootstrap.servers: "PLAINTEXT://kafka:9092"
+    confluent.controlcenter.monitoring.interceptor.topic: "__confluent.monitoring.interceptor"
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1"
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: traefik
+    hosts:
+      - control-center.example.com
+    tls:
+      - secretName: control-center-tls
+        hosts:
+          - control-center.example.com
