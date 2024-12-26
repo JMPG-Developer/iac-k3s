@@ -1,5 +1,0 @@
-persistence:
-  enabled: true
-  storageClass: "local-path"
-service:
-  type: NodePort
