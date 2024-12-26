@@ -1,7 +1,7 @@
 # Variables
 KUBECTL = kubectl
-NAMESPACE = sonarqube
-FILES = sonarqube.yaml
+NAMESPACE = nexus
+FILES = nexus.yaml
 
 # Targets
 .PHONY: all apply clean
