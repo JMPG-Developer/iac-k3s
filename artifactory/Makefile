@@ -1,7 +1,7 @@
 # Variables
 KUBECTL = kubectl
-NAMESPACE = nexus
-FILES = nexus.yaml
+NAMESPACE = artifactory
+FILES = artifactory.yaml
 
 # Targets
 .PHONY: all apply clean
