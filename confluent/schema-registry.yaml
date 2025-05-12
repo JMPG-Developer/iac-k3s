@@ -23,11 +23,13 @@ spec:
         image: confluentinc/cp-schema-registry:7.9.1
         ports:
         - containerPort: 8081
-        command: ["sleep"]
-        args: ["3600"]
+        # command: ["sleep"]
+        # args: ["3600"]
         env:
-        - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
-          value: PLAINTEXT://broker.confluent.svc.cluster.local:9092
+        - name: BOOTSTRAP_SERVERS
+          value: broker.confluent.svc.cluster.local:9092
+        - name: SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL
+          value: ""
         - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
           value: PLAINTEXT://broker.confluent.svc.cluster.local:9092
         - name: SCHEMA_REGISTRY_HOST_NAME

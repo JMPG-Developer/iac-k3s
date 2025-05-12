@@ -22,7 +22,8 @@ spec:
       - name: broker
         image: confluentinc/cp-kafka:7.9.1
         ports:
-        - containerPort: 9092
+          - containerPort: 9092
+          - containerPort: 9093
         env:
         - name: KAFKA_LISTENERS
           value: PLAINTEXT://0.0.0.0:9092
