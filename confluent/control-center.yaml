@@ -26,6 +26,8 @@ spec:
         env:
         - name: CONTROL_CENTER_BOOTSTRAP_SERVERS
           value: broker.confluent.svc.cluster.local:9092
+        - name: CONTROL_CENTER_SCHEMA_REGISTRY_URL
+          value: http://schema-registry.confluent.svc.cluster.local:8081
         - name: CONTROL_CENTER_REPLICATION_FACTOR
           value: "1"
         - name: CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS
