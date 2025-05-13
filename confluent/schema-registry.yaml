@@ -29,11 +29,13 @@ spec:
         - name: SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL
           value: ""
         - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
-          value: PLAINTEXT://broker.confluent.svc.cluster.local:9092
+          value: PLAINTEXT://broker:9092
         - name: SCHEMA_REGISTRY_HOST_NAME
           value: schema-registry.confluent.svc.cluster.local
         - name: SCHEMA_REGISTRY_LISTENERS
           value: http://0.0.0.0:8081
+        - name: SCHEMA_REGISTRY_DEBUG
+          value: "true"
 ---
 apiVersion: v1
 kind: Service
