@@ -96,11 +96,9 @@ spec:
           mountPath: /opt/sonarqube/extensions
       volumes:
       - name: sonarqube-logs
-        persistentVolumeClaim:
-          claimName: sonarqube-pvc
+        emptyDir: {}
       - name: sonarqube-extensions
-        persistentVolumeClaim:
-          claimName: sonarqube-pvc
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
