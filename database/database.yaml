@@ -49,3 +49,16 @@ spec:
         - name: database-data
           persistentVolumeClaim:
             claimName: database-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: database
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: LoadBalancer
