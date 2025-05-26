@@ -36,10 +36,10 @@ spec:
           env:
             - name: POSTGRES_USER
               value: postgres
-            - name: POSTGRES_DB
-              value: mydatabase
             - name: POSTGRES_PASSWORD
-              value: sonar
+              value: postgres
+            - name: POSTGRES_DB
+              value: example
           ports:
             - containerPort: 5432
           volumeMounts:
