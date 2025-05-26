@@ -38,6 +38,19 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 8081  # Puerto por defecto de Nexus Repository
+        env:
+        - name: DATABASE_TYPE
+          value: postgresql  # Contexto de la aplicación Nexus
+        - name: DATABASE_HOST
+          value: postgres.database.svc.cluster.local
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_NAME
+          value: nexus
+        - name: DATABASE_USER
+          value: nexus_user
+        - name: DATABASE_PASSWORD
+          value: nexus_password
         volumeMounts:
           - name: nexus-data
             mountPath: /nexus-data
