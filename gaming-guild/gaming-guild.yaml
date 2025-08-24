@@ -1,4 +1,95 @@
+---
+# 1. Namespace para aislar la web
 apiVersion: v1
 kind: Namespace
 metadata:
   name: gaming-guild
+
+---
+# 2. Deployment con una página HTML de ejemplo (Nginx)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: gaming-guild
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: html
+          configMap:
+            name: html-content
+
+---
+# 3. ConfigMap con HTML personalizado
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: html-content
+  namespace: gaming-guild
+  labels:
+    app: web
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Gaming Guild</title>
+    </head>
+    <body>
+      <h1>Welcome to Gaming Guild</h1>
+      <p>This is a test site served via Traefik and Cloudflare Tunnel!</p>
+    </body>
+    </html>
+
+---
+# 4. Service para exponer Nginx internamente
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: gaming-guild
+spec:
+  selector:
+    app: web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# 5. Ingress con Traefik para servir www.gaming-guild.com
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  namespace: gaming-guild
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: www.gaming-guild.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80
