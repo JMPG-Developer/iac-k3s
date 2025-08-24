@@ -1,0 +1,129 @@
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jenkins
+---
+# ServiceAccount para Jenkins
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins
+  namespace: jenkins
+---
+# ClusterRole con permisos mínimos necesarios
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jenkins
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/exec
+      - secrets
+      - services
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - watch
+      - list
+      - create
+      - delete
+      - patch
+      - update
+  - apiGroups:
+      - batch
+      - extensions
+    resources:
+      - jobs
+      - deployments
+    verbs:
+      - get
+      - watch
+      - list
+      - create
+      - delete
+      - patch
+      - update
+  - apiGroups:
+      - policy
+    resources:
+      - podsecuritypolicies
+    verbs:
+      - use
+---
+# Binding del ClusterRole al ServiceAccount de Jenkins
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: jenkins
+subjects:
+  - kind: ServiceAccount
+    name: jenkins
+    namespace: jenkins
+roleRef:
+  kind: ClusterRole
+  name: jenkins
+  apiGroup: rbac.authorization.k8s.io
+---
+# PersistentVolumeClaim para Jenkins Home
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pvc
+  namespace: jenkins
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Deployment de Jenkins Master
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-master
+  namespace: jenkins
+  labels:
+    app: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      serviceAccountName: jenkins
+      containers:
+        - name: jenkins
+          image: jenkins/jenkins:lts
+          ports:
+            - containerPort: 8080
+            - containerPort: 50000
+          volumeMounts:
+            - name: jenkins-home
+              mountPath: /var/jenkins_home
+      volumes:
+        - name: jenkins-home
+          persistentVolumeClaim:
+            claimName: jenkins-pvc
+---
+# Servicio para exponer Jenkins
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30808
+  selector:
+    app: jenkins
