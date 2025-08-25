@@ -21,37 +21,21 @@ rules:
     resources:
       - pods
       - pods/exec
-      - secrets
+      - pods/log
+      - pods/attach
       - services
+      - endpoints
+      - secrets
+      - configmaps
       - persistentvolumeclaims
-    verbs:
-      - get
-      - watch
-      - list
-      - create
-      - delete
-      - patch
-      - update
-  - apiGroups:
-      - batch
-      - extensions
-    resources:
-      - jobs
-      - deployments
-    verbs:
-      - get
-      - watch
-      - list
-      - create
-      - delete
-      - patch
-      - update
-  - apiGroups:
-      - policy
-    resources:
-      - podsecuritypolicies
-    verbs:
-      - use
+      - serviceaccounts
+    verbs: ["get","list","watch","create","delete","patch","update"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get","list","watch","create","delete","patch","update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments","replicasets"]
+    verbs: ["get","list","watch"]
 ---
 # Binding del ClusterRole al ServiceAccount de Jenkins
 apiVersion: rbac.authorization.k8s.io/v1
@@ -99,12 +83,17 @@ spec:
         app: jenkins
     spec:
       serviceAccountName: jenkins
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: jenkins
-          image: jenkins/jenkins:lts
+          image: jenkins/jenkins:latest
           ports:
             - containerPort: 8080
             - containerPort: 50000
+          env:
+            - name: DOCKER_HOST
+              value: tcp://dind.jenkins.svc:2375
           volumeMounts:
             - name: jenkins-home
               mountPath: /var/jenkins_home
@@ -127,3 +116,75 @@ spec:
       nodePort: 30808
   selector:
     app: jenkins
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: dind
+  namespace: jenkins
+spec:
+  selector:
+    matchLabels:
+      app: dind
+  template:
+    metadata:
+      labels:
+        app: dind
+    spec:
+      serviceAccountName: jenkins
+      containers:
+        - name: dind
+          image: docker:27-dind
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""           # <- DESACTIVA TLS en dind
+          args:
+            - "--host=tcp://0.0.0.0:2375"
+            - "--tls=false"
+            - "--insecure-registry=nexus-repository.jenkins.svc.cluster.local:32000" 
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /_ping
+              port: 2375
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: dind-storage
+              mountPath: /var/lib/docker
+      volumes:
+        - name: dind-storage
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dind
+  namespace: jenkins
+spec:
+  selector:
+    app: dind
+  ports:
+    - port: 2375
+      targetPort: 2375
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jenkins-ingress
+  namespace: jenkins
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: jenkins.gaming-guild.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80
