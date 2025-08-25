@@ -103,14 +103,32 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: sonarqube
+  name: sonarqube-service
   namespace: sonarqube
 spec:
+  type: LoadBalancer
   selector:
     app: sonarqube
   ports:
   - protocol: TCP
     port: 9000
     targetPort: 9000
-    nodePort: 30000
-  type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarqube-ingress
+  namespace: sonarqube
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: sonarqube.gaming-guild.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarqube-service
+                port:
+                  number: 9000

@@ -72,10 +72,28 @@ spec:
       protocol: TCP
       port: 8081
       targetPort: 8081
-      nodePort: 30082
     - name: nexus-repository
       protocol: TCP
       port: 32000
       targetPort: 32000
-      nodePort: 32000
-  type: NodePort
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nexus-ingress
+  namespace: artifactory
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: artifactory.gaming-guild.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nexus
+                port:
+                  number: 8081
+---

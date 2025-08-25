@@ -79,9 +79,8 @@ kind: Ingress
 metadata:
   name: web-ingress
   namespace: gaming-guild
-  annotations:
-    kubernetes.io/ingress.class: traefik
 spec:
+  ingressClassName: traefik
   rules:
     - host: www.gaming-guild.com
       http:
