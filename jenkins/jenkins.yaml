@@ -81,22 +81,24 @@ spec:
         fsGroup: 1000
       containers:
         - name: jenkins
-          # image: jenkins/jenkins:latest
-          # image: jmpgdev/jenkins-docker:latest
-          image: artifactory.gaming-guild.com/docker-local/jenkins-docker:latest
+          image: artifactory.gaming-guild.com/docker-hosted/jenkins-docker:latest
           ports:
             - containerPort: 8080
             - containerPort: 50000
           env:
+            - name: ARTIFACTORY_URL
+              value: artifactory.gaming-guild.com
+            - name: ARTIFACTORY_USER
+              value: admin
+            - name: ARTIFACTORY_PASSWORD
+              value: "@*Tf@0nq!aDw#6UEbWjN"
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
             - name: DOCKER_HOST
               value: tcp://dind.jenkins.svc.cluster.local:2375
           volumeMounts:
             - name: jenkins-home
               mountPath: /var/jenkins_home
-          # lifecycle:
-          #   postStart:
-          #     exec:
-          #       command: ["sh","-c","apt-get update && apt-get install -y docker.io && rm -rf /var/lib/apt/lists/*"]
       volumes:
         - name: jenkins-home
           persistentVolumeClaim:
@@ -126,28 +128,28 @@ spec:
 #     scheme: https
 #     permanent: true
 # ---
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: jenkins-ingress
-#   namespace: jenkins
-# spec:
-#   ingressClassName: traefik
-#   # tls:
-#   #   - hosts:
-#   #       - jenkins.gaming-guild.com
-#   #     secretName: jenkins-tls
-#   rules:
-#     - host: jenkins.gaming-guild.com
-#       http:
-#         paths:
-#           - path: /
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: jenkins-service
-#                 port:
-#                   number: 8080
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jenkins-ingress
+  namespace: jenkins
+spec:
+  ingressClassName: traefik
+  # tls:
+  #   - hosts:
+  #       - jenkins.gaming-guild.com
+  #     secretName: jenkins-tls
+  rules:
+    - host: jenkins.gaming-guild.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jenkins-service
+                port:
+                  number: 8080
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
