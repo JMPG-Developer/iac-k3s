@@ -7,7 +7,7 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-deployment
+  name: frontend-deployment
   namespace: jmpg-developer
 spec:
   replicas: 1
@@ -15,11 +15,11 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: web
+      app: frontend
   template:
     metadata:
       labels:
-        app: web
+        app: frontend
     spec:
       containers:
         - name: frontend
@@ -30,32 +30,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-service
+  name: frontend-service
   namespace: jmpg-developer
 spec:
   type: LoadBalancer
   selector:
-    app: web
+    app: frontend
   ports:
     - protocol: TCP
       port: 80
       targetPort: 80
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: web-ingress
-#   namespace: jmpg-developer
-# spec:
-#   ingressClassName: traefik
-#   rules:
-#     - host: jmpg.dev
-#       http:
-#         paths:
-#           - path: /
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: web-service
-#                 port:
-#                   number: 80
