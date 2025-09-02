@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: runners
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gh-runner
+  namespace: runners
+  labels:
+    app: gh-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gh-runner
+  template:
+    metadata:
+      labels:
+        app: gh-runner
+    spec:
+      containers:
+        - name: gh-runner
+          image: jmpgdev/github-runner:latest
+          ports:
+            - containerPort: 8080
+            - containerPort: 50000
+          env:
+            - name: GITHUB_TOKEN
+              value: AAAAA
+---
