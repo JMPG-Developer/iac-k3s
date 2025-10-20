@@ -114,21 +114,21 @@ spec:
     port: 9000
     targetPort: 9000
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: sonarqube-ingress
-  namespace: sonarqube
-spec:
-  ingressClassName: traefik
-  rules:
-    - host: sonarqube.gaming-guild.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: sonarqube-service
-                port:
-                  number: 9000
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: sonarqube-ingress
+#   namespace: sonarqube
+# spec:
+#   ingressClassName: traefik
+#   rules:
+#     - host: sonarqube.jmpg.dev
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: sonarqube-service
+#                 port:
+#                   number: 9000
