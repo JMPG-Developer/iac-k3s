@@ -26,6 +26,15 @@ spec:
           image: jmpgdeveloper/backend:latest
           ports:
             - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: cloud
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres.jmpg-developer.svc.cluster.local:5432/backend
+            - name: SPRING_DATASOURCE_USERNAME
+              value: ps_user
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: SecurePassword
 ---
 apiVersion: v1
 kind: Service

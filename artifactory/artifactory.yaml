@@ -6,7 +6,6 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: longhorn
   resources:
     requests:
       storage: 15Gi
@@ -14,24 +13,23 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: registry
+  name: docker-registry
   namespace: artifactory
+  labels:
+    app: docker-registry
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: registry
+      matchLabels:
+        app: docker-registry
   template:
     metadata:
       labels:
-        app: registry
-        name: registry
+        app: docker-registry
     spec:
-      nodeSelector:
-        node-type: worker
       containers:
       - name: registry
-        image: registry:2
+        image: registry:latest
         ports:
         - containerPort: 5000
         volumeMounts:
@@ -39,9 +37,9 @@ spec:
           mountPath: /var/lib/registry
           subPath: registry
       volumes:
-        - name: volv
-          persistentVolumeClaim:
-            claimName: artifactory-pvc
+      - name: volv
+        persistentVolumeClaim:
+          claimName: artifactory-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -49,11 +47,10 @@ metadata:
   name: registry-service
   namespace: artifactory
 spec:
+  type: ClusterIP
   selector:
-    app: registry
-  type: LoadBalancer
+    app: docker-registry
   ports:
-    - name: docker-port
-      protocol: TCP
+    - protocol: TCP
       port: 5000
       targetPort: 5000
