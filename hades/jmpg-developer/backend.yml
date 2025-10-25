@@ -23,14 +23,14 @@ spec:
     spec:
       containers:
         - name: backend
-          image: jmpgdeveloper/backend:latest
+          image: artifactory.jmpg.dev/backend:latest
           ports:
             - containerPort: 8080
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: cloud
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgres.jmpg-developer.svc.cluster.local:5432/backend
+              value: jdbc:postgresql://postgres.database.svc.cluster.local:5432/backend
             - name: SPRING_DATASOURCE_USERNAME
               value: ps_user
             - name: SPRING_DATASOURCE_PASSWORD
