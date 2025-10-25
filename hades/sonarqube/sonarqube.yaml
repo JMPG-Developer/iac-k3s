@@ -3,6 +3,16 @@ kind: Namespace
 metadata:
   name: sonarqube
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sonarqube-db-secret
+  namespace: sonarqube
+type: Opaque
+data:
+  username: cHNfdXNlcg==
+  password: U2VjdXJlUGFzc3dvcmQ=
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,12 +34,18 @@ spec:
         ports:
         - containerPort: 9000
         env:
-        - name: SONARQUBE_JDBC_URL
+        - name: SONAR_JDBC_URL
           value: "jdbc:postgresql://postgres.database.svc.cluster.local:5432/sonarqube"
-        - name: SONARQUBE_JDBC_USERNAME
-          value: ps_user
-        - name: SONARQUBE_JDBC_PASSWORD
-          value: SecurePassword
+        - name: SONAR_JDBC_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: sonarqube-db-secret
+              key: username
+        - name: SONAR_JDBC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sonarqube-db-secret
+              key: password
         volumeMounts:
         - name: sonarqube-logs
           mountPath: /opt/sonarqube/logs
