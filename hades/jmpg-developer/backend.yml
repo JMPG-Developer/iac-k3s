@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: artifactory.jmpg.dev/backend:latest
+          image: artifactory.jmpg.dev/jmpg-developer/backend-native:latest
           ports:
             - containerPort: 8080
           env:
@@ -42,7 +42,7 @@ metadata:
   name: backend-service
   namespace: jmpg-developer
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: backend
   ports:
