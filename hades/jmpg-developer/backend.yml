@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: artifactory.jmpg.dev/jmpg-developer/backend-native:latest
+          image: artifactory.jmpg.dev/jmpg-developer/backend:0.1.0
           ports:
             - containerPort: 8080
           env:
