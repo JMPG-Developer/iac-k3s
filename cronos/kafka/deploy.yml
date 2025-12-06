@@ -1,0 +1,53 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: kafka
+  namespace: kube-system
+spec:
+  repo: https://charts.redpanda.com
+  chart: redpanda
+  version: "5.7.4"
+  targetNamespace: kafka
+  createNamespace: true
+  valuesContent: |-
+    image:
+      repository: docker.io/redpandadata/redpanda
+      tag: v24.2.4
+    
+    statefulset:
+      replicas: 1
+      sideCars:
+        configWatcher:
+          enabled: false
+    
+    tls:
+      enabled: false
+      
+    auth:
+      sasl:
+        enabled: false
+
+    resources:
+      cpu:
+        cores: 1
+      memory:
+        enable_memory_locking: false
+        container:
+          max: 2Gi
+
+    listeners:
+      kafka:
+        external:
+          default:
+            enabled: false
+      
+      schemaRegistry:
+        enabled: true
+      
+      http:
+        enabled: true
+    
+    tuning:
+      tune_aio_events: false
+      tune_clocksource: false
+      tune_swappiness: false
