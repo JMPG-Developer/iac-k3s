@@ -27,7 +27,7 @@ spec:
         - name: RUNNER_ORG
           value: "JMPG-Developer"
         - name: RUNNER_TOKEN
-          value: "ABRH6IXDR6YJRZBYFMI7UFDKLS32A"  # ◄ Asegúrate de que este token siga siendo válido en GitHub
+          value: "ABRH6IXO2WR3VJ5TJGNZEFDKL5Z3G"  # ◄ Asegúrate de que este token siga siendo válido en GitHub
         - name: DOCKER_HOST
           value: "tcp://localhost:2375"
         volumeMounts:
@@ -35,7 +35,7 @@ spec:
           mountPath: /runner
       - name: dind
         image: docker:dind
-        # ◄ Hemos eliminado los "args:" conflictivos para que docker bindeé su puerto nativamente sin chocarse
+        args: ["--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock"]
         securityContext:
           privileged: true
         env:
