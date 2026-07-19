@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Ansible
+*.retry
+.vault_pass
+.vault_pass.txt
+vault_pass*
+*.vault-password
+
+# Editores / IDE
+*.swp
+.idea/
+.vscode/

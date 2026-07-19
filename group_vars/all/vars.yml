@@ -1,0 +1,7 @@
+# Constantes globales no sensibles
+
+# Cert-manager ACME email
+cert_manager_acme_email: jmpg.dev@gmail.com
+
+# k3s kubeconfig path en todos los servidores
+k3s_kubeconfig: /etc/rancher/k3s/k3s.yaml

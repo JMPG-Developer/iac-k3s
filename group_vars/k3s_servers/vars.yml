@@ -1,0 +1,6 @@
+# Variables de grupo para k3s_servers
+
+# Usuario SSH y método de elevación de privilegios
+ansible_user: root
+become: true
+become_method: sudo
