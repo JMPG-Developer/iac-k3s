@@ -1,0 +1,55 @@
+name: Validar roles Ansible
+
+on:
+  pull_request:
+    paths:
+      - 'roles/**'
+      - 'playbooks/**'
+      - '.github/workflows/ansible-lint.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'roles/**'
+      - 'playbooks/**'
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    name: Validar sintaxis y mejores prácticas de Ansible
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Ansible y ansible-lint
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install ansible ansible-lint
+
+      - name: Ejecutar ansible-lint
+        run: |
+          ansible-lint roles/ playbooks/ --strict
+
+      - name: Validar estructura de directorios
+        run: |
+          for role in roles/*/; do
+            role_name=$(basename "$role")
+            if [ ! -f "$role/tasks/main.yml" ]; then
+              echo "Error: $role_name falta tasks/main.yml"
+              exit 1
+            fi
+            if [ ! -d "$role/defaults" ] && [ ! -d "$role/templates" ]; then
+              echo "Aviso: $role_name podría necesitar defaults/ o templates/"
+            fi
+          done
+          echo "✓ Estructura de roles válida"
+
+      - name: Validar sintaxis YAML
+        run: |
+          for file in inventory/*.yml group_vars/**/*.yml host_vars/**/*.yml playbooks/*.yml; do
+            if [ -f "$file" ]; then
+              python3 -m yaml "$file" || exit 1
+            fi
+          done
+          echo "✓ Sintaxis YAML válida"
