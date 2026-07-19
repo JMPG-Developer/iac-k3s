@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ postgres_namespace }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: {{ postgres_namespace }}
+  labels:
+    app: postgres
+type: Opaque
+stringData:
+  POSTGRES_DB: {{ postgres_db }}
+  POSTGRES_USER: {{ postgres_user }}
+  POSTGRES_PASSWORD: "{{ postgres_password }}"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-volume
+  namespace: {{ postgres_namespace }}
+  labels:
+    type: local
+    app: postgres
+spec:
+  storageClassName: {{ postgres_storage_class }}
+  capacity:
+    storage: {{ postgres_storage }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ postgres_pv_path }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-volume-claim
+  namespace: {{ postgres_namespace }}
+  labels:
+    app: postgres
+spec:
+  storageClassName: {{ postgres_storage_class }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ postgres_storage }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: {{ postgres_namespace }}
+spec:
+  replicas: {{ postgres_replicas }}
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: '{{ postgres_image }}'
+          imagePullPolicy: {{ postgres_image_pull_policy }}
+          ports:
+            - containerPort: {{ postgres_port }}
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgresdata
+      volumes:
+        - name: postgresdata
+          persistentVolumeClaim:
+            claimName: postgres-volume-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: {{ postgres_namespace }}
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ postgres_port }}
+      targetPort: {{ postgres_port }}
+  selector:
+    app: postgres

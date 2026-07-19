@@ -1,0 +1,7 @@
+---
+- name: Configurar servidor cronos
+  hosts: cronos
+  become: true
+  roles:
+    - common
+    - { role: cloudflared, tags: [cloudflared] }

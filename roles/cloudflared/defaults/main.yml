@@ -1,0 +1,11 @@
+---
+cloudflared_namespace: cloudflared
+cloudflared_secret_name: tunnel-token
+cloudflared_replicas: 2
+cloudflared_image: cloudflare/cloudflared:latest
+cloudflared_loglevel: debug
+cloudflared_metrics_port: 2000
+cloudflared_dns_enabled: false
+cloudflared_dns_nameservers:
+  - 1.1.1.1
+  - 8.8.8.8

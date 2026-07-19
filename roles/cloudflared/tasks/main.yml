@@ -1,0 +1,6 @@
+---
+- name: Aplicar manifiestos de cloudflared
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ lookup('template', 'deploy.yaml.j2') | from_yaml_all | list }}"

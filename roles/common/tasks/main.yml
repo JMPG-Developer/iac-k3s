@@ -1,0 +1,10 @@
+---
+- name: Asegurar pip3 disponible
+  ansible.builtin.package:
+    name: python3-pip
+    state: present
+
+- name: Instalar librería kubernetes para el módulo kubernetes.core.k8s
+  ansible.builtin.pip:
+    name: kubernetes
+    state: present
