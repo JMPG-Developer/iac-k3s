@@ -1,0 +1,5 @@
+# Variables de configuración para el servidor cronos
+# Los valores sensibles están en vault.yml
+
+cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
+github_runner_token: "{{ vault_github_runner_token }}"

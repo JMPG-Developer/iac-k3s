@@ -1,0 +1,7 @@
+# Variables de configuración para el servidor hades
+# Los valores sensibles están en vault.yml
+
+cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
+postgres_password: "{{ vault_postgres_password_hades }}"
+docker_registry_username: admin
+docker_registry_password: "{{ vault_docker_registry_password }}"
