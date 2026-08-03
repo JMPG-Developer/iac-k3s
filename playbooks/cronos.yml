@@ -5,3 +5,4 @@
   roles:
     - common
     - { role: cloudflared, tags: [cloudflared] }
+    - { role: github_runner, tags: [github_runner] }

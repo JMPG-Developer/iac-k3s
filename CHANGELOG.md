@@ -7,6 +7,10 @@ El formato de este changelog se basa en [Keep a Changelog](https://keepachangelo
 ## [Unreleased]
 
 ### Added
+- Role `github_runner`: runners self-hosted de GitHub Actions parametrizados por lista
+  - Soporta scope `org` y `repo` (necesario para repos de cuenta personal como `jmpgdev/portal`)
+  - Token via Secret de k8s (antes hardcodeado en el YAML crudo de `cronos/`)
+  - RBAC opcional por runner (`deploy_namespaces`): ServiceAccount + Role/RoleBinding limitados para desplegar via kubectl in-cluster
 - Migración completa de IaC crudo de Kubernetes a roles Ansible
 - Estructura base: `inventory`, `group_vars`, `host_vars`, `roles`, `playbooks`
 - Role `common`: bootstrap de dependencias Python (kubernetes lib)

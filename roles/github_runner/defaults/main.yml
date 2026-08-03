@@ -1,0 +1,13 @@
+---
+github_runner_namespace: github-runner
+github_runner_image: summerwind/actions-runner:latest
+github_runner_dind_image: docker:dind
+
+# Lista de runners a desplegar. Cada entrada:
+#   name: nombre del runner (y del Deployment/Secret asociados)
+#   scope: org | repo
+#   target: nombre de la organización, o owner/repo si scope=repo
+#   token: registration token (vaulteado; caduca ~1h, regenerar antes de aplicar)
+#   deploy_namespaces: namespaces donde el runner puede desplegar via kubectl
+#     (crea ServiceAccount + Role/RoleBinding limitados a esos namespaces)
+github_runners: []
