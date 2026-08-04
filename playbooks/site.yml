@@ -1,4 +1,2 @@
 ---
-- import_playbook: hades.yml
-- import_playbook: zeus.yml
-- import_playbook: cronos.yml
+- import_playbook: k3s_servers.yml

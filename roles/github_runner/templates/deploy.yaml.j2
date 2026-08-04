@@ -2,64 +2,16 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ github_runner_namespace }}
-{% for runner in github_runners %}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ runner.name }}-token
+  name: github-runner-access-token
   namespace: {{ github_runner_namespace }}
 type: Opaque
 stringData:
-  token: "{{ runner.token }}"
-{% if runner.deploy_namespaces | default([]) | length > 0 %}
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ runner.name }}-deployer
-  namespace: {{ github_runner_namespace }}
-{% for ns in runner.deploy_namespaces %}
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ ns }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: {{ runner.name }}-deployer
-  namespace: {{ ns }}
-rules:
-  - apiGroups: ['apps']
-    resources: ['deployments']
-    verbs: ['get', 'list', 'watch', 'create', 'update', 'patch']
-  - apiGroups: ['apps']
-    resources: ['replicasets']
-    verbs: ['get', 'list', 'watch']
-  - apiGroups: ['']
-    resources: ['services']
-    verbs: ['get', 'list', 'watch', 'create', 'update', 'patch']
-  - apiGroups: ['']
-    resources: ['pods']
-    verbs: ['get', 'list', 'watch']
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: {{ runner.name }}-deployer
-  namespace: {{ ns }}
-subjects:
-  - kind: ServiceAccount
-    name: {{ runner.name }}-deployer
-    namespace: {{ github_runner_namespace }}
-roleRef:
-  kind: Role
-  name: {{ runner.name }}-deployer
-  apiGroup: rbac.authorization.k8s.io
-{% endfor %}
-{% endif %}
+  ACCESS_TOKEN: "{{ github_runner_access_token }}"
+{% for runner in github_runners %}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -78,9 +30,6 @@ spec:
       labels:
         app: {{ runner.name }}
     spec:
-{% if runner.deploy_namespaces | default([]) | length > 0 %}
-      serviceAccountName: {{ runner.name }}-deployer
-{% endif %}
       containers:
         - name: runner
           image: {{ github_runner_image }}
@@ -88,17 +37,21 @@ spec:
             - name: RUNNER_NAME
               value: "{{ runner.name }}"
 {% if runner.scope == 'org' %}
-            - name: RUNNER_ORG
+            - name: RUNNER_SCOPE
+              value: org
+            - name: ORG_NAME
               value: "{{ runner.target }}"
 {% else %}
-            - name: RUNNER_REPO
-              value: "{{ runner.target }}"
+            - name: RUNNER_SCOPE
+              value: repo
+            - name: REPO_URL
+              value: "https://github.com/{{ runner.target }}"
 {% endif %}
-            - name: RUNNER_TOKEN
+            - name: ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ runner.name }}-token
-                  key: token
+                  name: github-runner-access-token
+                  key: ACCESS_TOKEN
             - name: DOCKER_HOST
               value: tcp://localhost:2375
           volumeMounts:

@@ -1,7 +1,0 @@
-# Variables de configuración para el servidor zeus
-# Los valores sensibles están en vault.yml
-
-cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
-cloudflared_dns_enabled: true
-postgres_password: "{{ vault_postgres_password_zeus }}"
-jenkins_artifactory_password: "{{ vault_jenkins_artifactory_password }}"

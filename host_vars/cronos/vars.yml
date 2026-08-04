@@ -1,20 +1,26 @@
 # Variables de configuración para el servidor cronos
 # Los valores sensibles están en vault.yml
 
+ansible_user: kairos
+ansible_password: "kairos"
+ansible_become: true
+ansible_become_password: "kairos"
+
+cloudflared_enabled: true
+postgres_enabled: false
+github_runner_enabled: true
+
 cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
 
 # Runners de GitHub Actions (role github_runner).
-# Los registration tokens caducan ~1h: regenerar en GitHub (Settings → Actions
-# → Runners → New self-hosted runner) y actualizar el vault justo antes de
-# ejecutar el playbook.
+# El control node usa `gh auth token` para generar el access token dinámicamente.
 github_runners:
   - name: k3s-runner-jmpg-developer
     scope: org
     target: JMPG-Developer
-    token: "{{ vault_github_runner_token }}"
+  - name: k3s-runner-gaming-guild
+    scope: org
+    target: Gaming-Guild
   - name: k3s-runner-portal
     scope: repo
     target: jmpgdev/portal
-    token: "{{ vault_github_runner_portal_token }}"
-    deploy_namespaces:
-      - portal

@@ -1,8 +1,0 @@
----
-- name: Configurar servidor hades
-  hosts: hades
-  become: true
-  roles:
-    - common
-    - { role: cloudflared, tags: [cloudflared] }
-    - { role: postgres, tags: [postgres, database] }

@@ -5,3 +5,8 @@ cert_manager_acme_email: jmpg.dev@gmail.com
 
 # k3s kubeconfig path en todos los servidores
 k3s_kubeconfig: /etc/rancher/k3s/k3s.yaml
+
+# Flags por host para activar/desactivar tooling compartido.
+cloudflared_enabled: false
+postgres_enabled: false
+github_runner_enabled: false

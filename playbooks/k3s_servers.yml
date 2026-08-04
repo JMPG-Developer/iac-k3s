@@ -1,0 +1,9 @@
+---
+- name: Configurar clusters k3s gestionados
+  hosts: k3s_servers
+  become: true
+  roles:
+    - common
+    - { role: cloudflared, tags: [cloudflared], when: cloudflared_enabled | default(false) | bool }
+    - { role: postgres, tags: [postgres, database], when: postgres_enabled | default(false) | bool }
+    - { role: github_runner, tags: [github_runner], when: github_runner_enabled | default(false) | bool }

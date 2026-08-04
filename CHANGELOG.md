@@ -15,11 +15,11 @@ El formato de este changelog se basa en [Keep a Changelog](https://keepachangelo
 - Estructura base: `inventory`, `group_vars`, `host_vars`, `roles`, `playbooks`
 - Role `common`: bootstrap de dependencias Python (kubernetes lib)
 - Role `cloudflared`: Cloudflare Tunnel normalizado a un único formato de Secret
-  - Soporta configuración DNS condicional por host (habilitada en zeus)
+  - Soporta configuración DNS condicional por host
   - Tokens parametrizados y vaulteados por servidor
 - Role `postgres`: PostgreSQL 14 con correcciones de seguridad
   - Corregido: ConfigMap → Secret para contraseñas
-  - Passwords distintos y únicos por servidor (hades vs zeus)
+  - Passwords distintos y únicos por servidor
 - Gestión de secretos con `ansible-vault`
   - Patrón de indirección: `vault.yml` (cifrado) ← `vars.yml` (plano)
 - GitHub Actions workflows
@@ -29,7 +29,7 @@ El formato de este changelog se basa en [Keep a Changelog](https://keepachangelo
 - README completamente reescrito con documentación de arquitectura, despliegue y troubleshooting
 
 ### Changed
-- Estructura del repo: de YAML crudo en `hades/`, `zeus/`, `cronos/` a roles Ansible reutilizables
+- Estructura del repo: de YAML crudo por host a roles Ansible reutilizables
 - Formato de Secret en cloudflared: normalizado a `stringData`/`TUNNEL_TOKEN` en los 3 hosts
 
 ### Fixed
@@ -51,8 +51,7 @@ El formato de este changelog se basa en [Keep a Changelog](https://keepachangelo
 - Dependencia de `kubectl apply -f` manual (ahora `ansible-playbook`)
 
 ### Notes
-- Roles en construcción: `metallb`, `cert_manager`, `docker_registry`, `jmpg_developer_*`, `sonarqube`, `confluent_kafka`, `elasticsearch`, `gaming_guild`, `jenkins`, `redpanda`, `github_runner`
-- `kafka_broker` (zeus): creado pero deshabilitado por defecto (redundante con confluent_kafka, decisión pendiente)
+- Roles en construcción: `metallb`, `cert_manager`, `docker_registry`, `redpanda`, `github_runner`
 - Requisito de coordinación: al aplicar nuevas passwords de Postgres, coordinar con consumidores de BD (backend, sonarqube, gaming-guild)
 
 ---
