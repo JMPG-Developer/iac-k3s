@@ -1,60 +1,60 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ postgres_namespace }}
+  name: {{ app_values.postgres_namespace }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-secret
-  namespace: {{ postgres_namespace }}
+  namespace: {{ app_values.postgres_namespace }}
   labels:
     app: postgres
 type: Opaque
 stringData:
-  POSTGRES_DB: {{ postgres_db }}
-  POSTGRES_USER: {{ postgres_user }}
-  POSTGRES_PASSWORD: "{{ postgres_password }}"
+  POSTGRES_DB: {{ app_values.postgres_db }}
+  POSTGRES_USER: {{ app_values.postgres_user }}
+  POSTGRES_PASSWORD: "{{ app_values.postgres_password }}"
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: postgres-volume
-  namespace: {{ postgres_namespace }}
+  namespace: {{ app_values.postgres_namespace }}
   labels:
     type: local
     app: postgres
 spec:
-  storageClassName: {{ postgres_storage_class }}
+  storageClassName: {{ app_values.postgres_storage_class }}
   capacity:
-    storage: {{ postgres_storage }}
+    storage: {{ app_values.postgres_storage }}
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: {{ postgres_pv_path }}
+    path: {{ app_values.postgres_pv_path }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-volume-claim
-  namespace: {{ postgres_namespace }}
+  namespace: {{ app_values.postgres_namespace }}
   labels:
     app: postgres
 spec:
-  storageClassName: {{ postgres_storage_class }}
+  storageClassName: {{ app_values.postgres_storage_class }}
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ postgres_storage }}
+      storage: {{ app_values.postgres_storage }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: {{ postgres_namespace }}
+  namespace: {{ app_values.postgres_namespace }}
 spec:
-  replicas: {{ postgres_replicas }}
+  replicas: {{ app_values.postgres_replicas }}
   selector:
     matchLabels:
       app: postgres
@@ -65,10 +65,10 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: '{{ postgres_image }}'
-          imagePullPolicy: {{ postgres_image_pull_policy }}
+          image: "{{ app_values.postgres_image }}"
+          imagePullPolicy: {{ app_values.postgres_image_pull_policy }}
           ports:
-            - containerPort: {{ postgres_port }}
+            - containerPort: {{ app_values.postgres_port }}
           envFrom:
             - secretRef:
                 name: postgres-secret
@@ -84,13 +84,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: {{ postgres_namespace }}
+  namespace: {{ app_values.postgres_namespace }}
   labels:
     app: postgres
 spec:
   type: ClusterIP
   ports:
-    - port: {{ postgres_port }}
-      targetPort: {{ postgres_port }}
+    - port: {{ app_values.postgres_port }}
+      targetPort: {{ app_values.postgres_port }}
   selector:
     app: postgres

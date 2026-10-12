@@ -7,6 +7,12 @@ El formato de este changelog se basa en [Keep a Changelog](https://keepachangelo
 ## [Unreleased]
 
 ### Added
+- App `mongodb` con persistencia (PVC) en el catálogo declarativo de K3s
+- Nuevo catálogo declarativo de aplicaciones por cluster con `k3s_apps` en `host_vars/<host>/vars.yml`
+- Nuevo rol genérico `k3s_app_deployer` para desplegar apps del catálogo
+- Nuevo playbook `playbooks/apps.yml` como capa principal de despliegue de aplicaciones
+- Soporte dual de despliegue por aplicación: `apply_mode=ansible|kubectl`
+- Nuevos playbooks por capa: `bootstrap.yml` y `services.yml`
 - Role `github_runner`: runners self-hosted de GitHub Actions parametrizados por lista
   - Soporta scope `org` y `repo` (necesario para repos de cuenta personal como `jmpgdev/portal`)
   - Token via Secret de k8s (antes hardcodeado en el YAML crudo de `cronos/`)
@@ -29,6 +35,13 @@ El formato de este changelog se basa en [Keep a Changelog](https://keepachangelo
 - README completamente reescrito con documentación de arquitectura, despliegue y troubleshooting
 
 ### Changed
+- Reestructuración de manifiestos: `deployments/` → `apps/<app>/manifests/`
+- `playbooks/site.yml` ahora orquesta bootstrap + `apps.yml`
+- `playbooks/services.yml` y `playbooks/k3s_servers.yml` quedan como alias de compatibilidad
+- Consolidación de despliegues en un modelo de catálogo (sin roles por app)
+- `playbooks/site.yml` ahora orquesta bootstrap + despliegue de servicios
+- `k3s_servers.yml` pasa a ser alias de compatibilidad hacia `services.yml`
+- Variables globales divididas en `group_vars/all/k3s.yml` y `group_vars/all/services.yml`
 - Estructura del repo: de YAML crudo por host a roles Ansible reutilizables
 - Formato de Secret en cloudflared: normalizado a `stringData`/`TUNNEL_TOKEN` en los 3 hosts
 

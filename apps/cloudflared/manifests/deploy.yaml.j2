@@ -1,24 +1,24 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ cloudflared_namespace }}
+  name: {{ app_values.cloudflared_namespace }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ cloudflared_secret_name }}
-  namespace: {{ cloudflared_namespace }}
+  name: {{ app_values.cloudflared_secret_name }}
+  namespace: {{ app_values.cloudflared_namespace }}
 type: Opaque
 stringData:
-  TUNNEL_TOKEN: "{{ cloudflared_tunnel_token }}"
+  TUNNEL_TOKEN: "{{ app_values.cloudflared_tunnel_token }}"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cloudflared-deployment
-  namespace: {{ cloudflared_namespace }}
+  namespace: {{ app_values.cloudflared_namespace }}
 spec:
-  replicas: {{ cloudflared_replicas }}
+  replicas: {{ app_values.cloudflared_replicas }}
   selector:
     matchLabels:
       pod: cloudflared
@@ -27,15 +27,15 @@ spec:
       labels:
         pod: cloudflared
     spec:
-{% if cloudflared_dns_enabled %}
+{% if app_values.cloudflared_dns_enabled %}
       dnsPolicy: "None"
       dnsConfig:
         nameservers:
-{% for ns in cloudflared_dns_nameservers %}
+{% for ns in app_values.cloudflared_dns_nameservers %}
           - {{ ns }}
 {% endfor %}
         searches:
-          - {{ cloudflared_namespace }}.svc.cluster.local
+          - {{ app_values.cloudflared_namespace }}.svc.cluster.local
           - svc.cluster.local
           - cluster.local
         options:
@@ -49,27 +49,27 @@ spec:
           - name: net.ipv4.ping_group_range
             value: "65532 65532"
       containers:
-        - image: {{ cloudflared_image }}
+        - image: {{ app_values.cloudflared_image }}
           name: cloudflared
           env:
             - name: TUNNEL_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ cloudflared_secret_name }}
+                  name: {{ app_values.cloudflared_secret_name }}
                   key: TUNNEL_TOKEN
           command:
             - cloudflared
             - tunnel
             - --no-autoupdate
             - --loglevel
-            - {{ cloudflared_loglevel }}
+            - {{ app_values.cloudflared_loglevel }}
             - --metrics
-            - 0.0.0.0:{{ cloudflared_metrics_port }}
+            - 0.0.0.0:{{ app_values.cloudflared_metrics_port }}
             - run
           livenessProbe:
             httpGet:
               path: /ready
-              port: {{ cloudflared_metrics_port }}
+              port: {{ app_values.cloudflared_metrics_port }}
             failureThreshold: 1
             initialDelaySeconds: 10
             periodSeconds: 10

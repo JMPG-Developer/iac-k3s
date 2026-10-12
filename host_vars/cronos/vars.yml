@@ -6,21 +6,29 @@ ansible_password: "kairos"
 ansible_become: true
 ansible_become_password: "kairos"
 
-cloudflared_enabled: true
-postgres_enabled: false
-github_runner_enabled: true
-
-cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
-
-# Runners de GitHub Actions (role github_runner).
-# El control node usa `gh auth token` para generar el access token dinámicamente.
-github_runners:
-  - name: k3s-runner-jmpg-developer
-    scope: org
-    target: JMPG-Developer
-  - name: k3s-runner-gaming-guild
-    scope: org
-    target: Gaming-Guild
-  - name: k3s-runner-portal
-    scope: repo
-    target: jmpgdev/portal
+k3s_apps:
+  - name: cloudflared
+    enabled: true
+    values:
+      cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
+  - name: postgres
+    enabled: false
+  - name: github_runner
+    enabled: true
+    values:
+      github_runner_runners:
+        - name: k3s-runner-jmpg-developer
+          scope: org
+          target: JMPG-Developer
+        - name: k3s-runner-gaming-guild
+          scope: org
+          target: Gaming-Guild
+        - name: k3s-runner-portal
+          scope: repo
+          target: jmpgdev/portal
+  - name: cert_manager
+    enabled: false
+  - name: mongodb
+    enabled: false
+    values:
+      mongodb_root_password: "{{ vault_mongodb_root_password }}"
