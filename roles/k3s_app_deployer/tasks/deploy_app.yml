@@ -1,0 +1,126 @@
+---
+- name: Validar definición de aplicación
+  ansible.builtin.assert:
+    that:
+      - k3s_app_item.name is defined
+      - k3s_app_item.name is string
+      - k3s_app_item.name | length > 0
+      - k3s_app_catalog[k3s_app_item.name] is defined
+    fail_msg: "Aplicación inválida o no catalogada: {{ k3s_app_item | to_nice_json }}"
+
+- name: Resolver catálogo de la aplicación
+  ansible.builtin.set_fact:
+    k3s_app_deployer_catalog_entry: "{{ k3s_app_catalog[k3s_app_item.name] }}"
+
+- name: Resolver manifiesto y modo de despliegue
+  ansible.builtin.set_fact:
+    k3s_app_deployer_manifest: "{{ k3s_app_item.manifest | default(k3s_app_deployer_catalog_entry.manifest) }}"
+    k3s_app_deployer_apply_mode: >-
+      {{
+        k3s_app_item.apply_mode
+        | default(
+            k3s_app_deployer_catalog_entry.apply_mode
+            | default(k3s_default_apply_mode | default(k3s_app_deployer_default_apply_mode))
+          )
+      }}
+
+- name: Validar modo de despliegue
+  ansible.builtin.assert:
+    that:
+      - k3s_app_deployer_apply_mode in k3s_app_deployer_allowed_apply_modes
+    fail_msg: "Modo inválido para {{ k3s_app_item.name }}: {{ k3s_app_deployer_apply_mode }}"
+
+- name: Resolver path de manifiesto
+  ansible.builtin.set_fact:
+    k3s_app_deployer_manifest_path: >-
+      {{
+        (k3s_app_deployer_manifest.startswith('/'))
+        | ternary(k3s_app_deployer_manifest, playbook_dir ~ '/../' ~ k3s_app_deployer_manifest)
+      }}
+
+- name: Validar existencia de manifiesto
+  ansible.builtin.stat:
+    path: "{{ k3s_app_deployer_manifest_path }}"
+  register: k3s_app_deployer_manifest_stat
+
+- name: Fallar si el manifiesto no existe
+  ansible.builtin.assert:
+    that:
+      - k3s_app_deployer_manifest_stat.stat.exists
+    fail_msg: "No existe el manifiesto para {{ k3s_app_item.name }}: {{ k3s_app_deployer_manifest_path }}"
+
+- name: Resolver variables de aplicación
+  ansible.builtin.set_fact:
+    k3s_app_deployer_values: "{{ (k3s_app_deployer_catalog_entry.values | default({})) | combine(k3s_app_item.values | default({}), recursive=True) }}"
+
+- name: Obtener access token de GitHub en control node para github_runner
+  when: k3s_app_item.name == 'github_runner'
+  block:
+    - name: Leer token desde gh auth
+      delegate_to: localhost
+      become: false
+      ansible.builtin.command:
+        argv:
+          - gh
+          - auth
+          - token
+      register: k3s_app_deployer_github_runner_access_token_result
+      changed_when: false
+
+    - name: Inyectar token en variables de app
+      ansible.builtin.set_fact:
+        k3s_app_deployer_values: >-
+          {{
+            k3s_app_deployer_values
+            | combine(
+                {'github_runner_access_token': k3s_app_deployer_github_runner_access_token_result.stdout | trim},
+                recursive=True
+              )
+          }}
+
+- name: Renderizar manifiesto
+  ansible.builtin.set_fact:
+    k3s_app_deployer_manifest_rendered: "{{ lookup('template', k3s_app_deployer_manifest_path) }}"
+  vars:
+    app: "{{ k3s_app_item }}"
+    app_values: "{{ k3s_app_deployer_values }}"
+
+- name: Aplicar con kubernetes.core.k8s
+  when: k3s_app_deployer_apply_mode == 'ansible'
+  kubernetes.core.k8s:
+    kubeconfig: "{{ k3s_kubeconfig }}"
+    state: present
+    definition: "{{ k3s_app_deployer_manifest_rendered | from_yaml_all | list }}"
+
+- name: Aplicar con kubectl
+  when: k3s_app_deployer_apply_mode == 'kubectl'
+  block:
+    - name: Crear archivo temporal para manifiesto
+      ansible.builtin.tempfile:
+        state: file
+        suffix: ".yaml"
+      register: k3s_app_deployer_manifest_tmp
+
+    - name: Escribir manifiesto temporal
+      ansible.builtin.copy:
+        dest: "{{ k3s_app_deployer_manifest_tmp.path }}"
+        mode: "0600"
+        content: "{{ k3s_app_deployer_manifest_rendered }}"
+
+    - name: Aplicar manifiesto con kubectl
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --kubeconfig
+          - "{{ k3s_kubeconfig }}"
+          - apply
+          - -f
+          - "{{ k3s_app_deployer_manifest_tmp.path }}"
+      changed_when: true
+
+  always:
+    - name: Eliminar manifiesto temporal
+      ansible.builtin.file:
+        path: "{{ k3s_app_deployer_manifest_tmp.path }}"
+        state: absent
+      when: k3s_app_deployer_manifest_tmp is defined and k3s_app_deployer_manifest_tmp.path is defined

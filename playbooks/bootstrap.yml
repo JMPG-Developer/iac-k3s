@@ -1,0 +1,12 @@
+---
+- name: Bootstrap común de nodos k3s
+  hosts: k3s_servers
+  become: true
+  tags:
+    - bootstrap
+    - common
+  roles:
+    - role: common
+      tags:
+        - bootstrap
+        - common

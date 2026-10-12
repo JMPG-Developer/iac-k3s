@@ -1,2 +1,6 @@
 ---
-- import_playbook: k3s_servers.yml
+- name: Ejecutar capa bootstrap
+  ansible.builtin.import_playbook: bootstrap.yml
+
+- name: Ejecutar capa de aplicaciones
+  ansible.builtin.import_playbook: apps.yml

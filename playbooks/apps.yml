@@ -1,0 +1,10 @@
+---
+- name: Desplegar catálogo de aplicaciones en clusters k3s
+  hosts: k3s_servers
+  become: true
+  tags:
+    - apps
+  roles:
+    - role: k3s_app_deployer
+      tags:
+        - apps

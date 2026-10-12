@@ -1,0 +1,14 @@
+---
+- name: Validar que k3s_apps es una lista
+  ansible.builtin.assert:
+    that:
+      - (k3s_apps | default([])) is sequence
+    fail_msg: "k3s_apps debe ser una lista de aplicaciones."
+
+- name: Desplegar aplicaciones habilitadas
+  ansible.builtin.include_tasks: deploy_app.yml
+  loop: "{{ k3s_apps | default([]) }}"
+  loop_control:
+    loop_var: k3s_app_item
+    label: "{{ k3s_app_item.name | default('app_sin_nombre') }}"
+  when: k3s_app_item.enabled | default(true) | bool

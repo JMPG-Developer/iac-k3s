@@ -1,17 +1,16 @@
 # iac-k3s
 
-Infraestructura como código para **tooling compartido de clusters k3s** gestionado con Ansible.
+Infraestructura como código para desplegar **aplicaciones compartidas en clusters K3s** usando Ansible.
 
 ## Alcance del repositorio
 
-Este repositorio solo contiene componentes de gestión reutilizables entre clusters, por ejemplo:
+Este repositorio contiene:
 
-- `cloudflared`
-- `postgres`
-- `github_runner`
-- bootstrap común (`common`)
+- **catálogo de aplicaciones** (manifiestos en `apps/`)
+- **configuración por cluster** (`host_vars/`)
+- **orquestación de despliegue** con Ansible
 
-Los **microservicios de producto** no se despliegan desde aquí: cada uno debe autodesplegarse desde su propio repositorio.
+Los microservicios de producto siguen fuera de este repositorio.
 
 ## Hosts gestionados
 
@@ -24,24 +23,50 @@ Los **microservicios de producto** no se despliegan desde aquí: cada uno debe a
 inventory/
   hosts.yml
 group_vars/
+  all/
+    k3s.yml
+    services.yml
 host_vars/
+apps/
+  cloudflared/manifests/deploy.yaml.j2
+  postgres/manifests/deploy.yaml.j2
+  github_runner/manifests/deploy.yaml.j2
+  cert_manager/manifests/deploy.yaml.j2
+  mongodb/manifests/deploy.yaml.j2
 roles/
+  common/
+  k3s_app_deployer/
 playbooks/
-  k3s_servers.yml
+  bootstrap.yml
+  apps.yml
   site.yml
+  services.yml      # alias de compatibilidad
+  k3s_servers.yml   # alias de compatibilidad
 ```
 
-## Modelo de despliegue
+## Modelo de despliegue por aplicación
 
-`playbooks/k3s_servers.yml` aplica un set común de roles sobre `k3s_servers`, activando cada rol por host mediante flags:
+Cada host define su lista de aplicaciones en `host_vars/<host>/vars.yml`:
 
-- `cloudflared_enabled`
-- `postgres_enabled`
-- `github_runner_enabled`
+```yaml
+k3s_apps:
+  - name: cloudflared
+    enabled: true
+    apply_mode: ansible   # ansible | kubectl
+    values:
+      cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
+```
 
-Estas flags se definen en `host_vars/<host>/vars.yml`.
+- `name`: app del catálogo (`k3s_app_catalog` en `group_vars/all/services.yml`)
+- `enabled`: activa/desactiva por cluster
+- `apply_mode`:
+  - `ansible` (default): aplica con `kubernetes.core.k8s`
+  - `kubectl`: aplica con `kubectl apply`
+- `values`: overrides por cluster/app
 
-`github_runner` obtiene el access token del control node con `gh auth token` y genera un registration token fresco en cada despliegue, así que no hace falta mantener tokens de runner en claro en el repo.
+`playbooks/site.yml` ejecuta:
+1. `bootstrap.yml` (prerequisitos del nodo)
+2. `apps.yml` (despliegue de catálogo)
 
 ## Uso
 
@@ -50,12 +75,13 @@ ansible-galaxy collection install -r requirements.yml
 ansible-playbook -i inventory/hosts.yml playbooks/site.yml --ask-vault-pass
 ```
 
-### Ejemplos por tag
+### Ejemplos de ejecución
 
 ```bash
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags cloudflared --ask-vault-pass
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags postgres --ask-vault-pass
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags github_runner --ask-vault-pass
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags bootstrap --ask-vault-pass
+ansible-playbook -i inventory/hosts.yml playbooks/apps.yml --ask-vault-pass
+ansible-playbook -i inventory/hosts.yml playbooks/apps.yml --limit hades --ask-vault-pass
+ansible-playbook -i inventory/hosts.yml playbooks/apps.yml --limit cronos --ask-vault-pass
 ```
 
 ## Secretos

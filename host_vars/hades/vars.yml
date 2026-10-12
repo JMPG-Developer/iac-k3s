@@ -1,9 +1,16 @@
 # Variables de configuración para el servidor hades
 # Los valores sensibles están en vault.yml
 
-cloudflared_enabled: true
-postgres_enabled: true
-github_runner_enabled: false
-
-cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
-postgres_password: "{{ vault_postgres_password_hades }}"
+k3s_apps:
+  - name: cloudflared
+    enabled: true
+    values:
+      cloudflared_tunnel_token: "{{ vault_cloudflared_tunnel_token }}"
+  - name: postgres
+    enabled: true
+    values:
+      postgres_password: "{{ vault_postgres_password_hades }}"
+  - name: github_runner
+    enabled: false
+  - name: cert_manager
+    enabled: false

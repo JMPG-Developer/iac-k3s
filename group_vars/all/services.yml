@@ -1,0 +1,66 @@
+---
+# Modelo declarativo de aplicaciones desplegables en clusters k3s
+
+k3s_default_apply_mode: ansible
+k3s_apps: []
+
+k3s_app_catalog:
+  cloudflared:
+    manifest: apps/cloudflared/manifests/deploy.yaml.j2
+    apply_mode: ansible
+    values:
+      cloudflared_namespace: cloudflared
+      cloudflared_secret_name: tunnel-token
+      cloudflared_replicas: 2
+      cloudflared_image: cloudflare/cloudflared:latest
+      cloudflared_loglevel: debug
+      cloudflared_metrics_port: 2000
+      cloudflared_dns_enabled: false
+      cloudflared_dns_nameservers:
+        - 1.1.1.1
+        - 8.8.8.8
+  postgres:
+    manifest: apps/postgres/manifests/deploy.yaml.j2
+    apply_mode: ansible
+    values:
+      postgres_namespace: database
+      postgres_db: database
+      postgres_user: ps_user
+      postgres_replicas: 1
+      postgres_image: postgres:14
+      postgres_image_pull_policy: IfNotPresent
+      postgres_port: 5432
+      postgres_pv_path: /data/postgresql
+      postgres_storage: 10Gi
+      postgres_storage_class: local-path
+  github_runner:
+    manifest: apps/github_runner/manifests/deploy.yaml.j2
+    apply_mode: ansible
+    values:
+      github_runner_namespace: github-runner
+      github_runner_image: myoung34/github-runner:latest
+      github_runner_dind_image: docker:dind
+      github_runner_runners: []
+  cert_manager:
+    manifest: apps/cert_manager/manifests/deploy.yaml.j2
+    apply_mode: ansible
+    values:
+      cert_manager_cluster_issuer_name: letsencrypt
+      cert_manager_acme_email: "{{ cert_manager_acme_email }}"
+      cert_manager_acme_server: https://acme-v02.api.letsencrypt.org/directory
+      cert_manager_private_key_secret_name: letsencrypt-account-key
+      cert_manager_ingress_class: traefik
+  mongodb:
+    manifest: apps/mongodb/manifests/deploy.yaml.j2
+    apply_mode: ansible
+    values:
+      mongodb_namespace: database
+      mongodb_secret_name: mongodb-auth
+      mongodb_deployment_name: mongodb
+      mongodb_service_name: mongodb
+      mongodb_pvc_name: mongodb-data
+      mongodb_storage_class: local-path
+      mongodb_storage_size: 20Gi
+      mongodb_image: mongo:7.0.14
+      mongodb_port: 27017
+      mongodb_root_username: root

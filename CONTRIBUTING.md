@@ -6,28 +6,49 @@
 
 No se aceptan despliegues de microservicios de producto en este repositorio; esos despliegues van en sus repositorios propios.
 
-## Convención de roles
+## Convención de aplicaciones
 
-Cada rol debe seguir:
+Cada aplicación del catálogo debe seguir:
 
 ```text
-roles/<role>/
-  defaults/main.yml
-  tasks/main.yml
-  templates/deploy.yaml.j2   # cuando aplique
+apps/<app>/
+  manifests/deploy.yaml.j2
 ```
 
-Y ejecutarse con `kubernetes.core.k8s` sobre `k3s_kubeconfig`.
+Los valores base de cada app se registran en:
 
-## Flags por host
+```text
+group_vars/all/services.yml -> k3s_app_catalog
+```
 
-Cada host activa/desactiva tooling con flags en `host_vars/<host>/vars.yml`:
+Y los overrides por cluster en:
 
-- `cloudflared_enabled`
-- `postgres_enabled`
-- `github_runner_enabled`
+```text
+host_vars/<host>/vars.yml -> k3s_apps
+```
 
-`github_runner` usa `gh auth token` del control node para generar tokens frescos; no guardes registration tokens de runners en texto plano.
+## Convención de roles
+
+- `roles/common`: prerequisitos del host.
+- `roles/k3s_app_deployer`: motor genérico de despliegue.
+
+## Convención de playbooks
+
+- `playbooks/bootstrap.yml`: bootstrap de host.
+- `playbooks/apps.yml`: despliegue de catálogo de apps.
+- `playbooks/site.yml`: orquestación principal.
+- `playbooks/services.yml` y `playbooks/k3s_servers.yml`: aliases de compatibilidad.
+
+## Modelo por host
+
+Cada host declara una lista `k3s_apps` con:
+
+- `name`
+- `enabled`
+- `apply_mode` (`ansible` o `kubectl`)
+- `values`
+
+`github_runner` usa `gh auth token` del control node para generar tokens frescos; no guardes tokens en texto plano.
 
 ## Flujo de validación local
 

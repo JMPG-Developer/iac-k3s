@@ -1,0 +1,5 @@
+---
+k3s_app_deployer_default_apply_mode: ansible
+k3s_app_deployer_allowed_apply_modes:
+  - ansible
+  - kubectl

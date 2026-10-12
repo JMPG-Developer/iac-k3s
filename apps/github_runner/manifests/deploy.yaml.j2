@@ -1,23 +1,23 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ github_runner_namespace }}
+  name: {{ app_values.github_runner_namespace }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: github-runner-access-token
-  namespace: {{ github_runner_namespace }}
+  namespace: {{ app_values.github_runner_namespace }}
 type: Opaque
 stringData:
-  ACCESS_TOKEN: "{{ github_runner_access_token }}"
-{% for runner in github_runners %}
+  ACCESS_TOKEN: "{{ app_values.github_runner_access_token }}"
+{% for runner in app_values.github_runner_runners %}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ runner.name }}
-  namespace: {{ github_runner_namespace }}
+  namespace: {{ app_values.github_runner_namespace }}
   labels:
     app: {{ runner.name }}
 spec:
@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: runner
-          image: {{ github_runner_image }}
+          image: {{ app_values.github_runner_image }}
           env:
             - name: RUNNER_NAME
               value: "{{ runner.name }}"
@@ -58,7 +58,7 @@ spec:
             - name: runner-storage
               mountPath: /runner
         - name: dind
-          image: {{ github_runner_dind_image }}
+          image: {{ app_values.github_runner_dind_image }}
           args: ['--host=tcp://0.0.0.0:2375', '--host=unix:///var/run/docker.sock']
           securityContext:
             privileged: true

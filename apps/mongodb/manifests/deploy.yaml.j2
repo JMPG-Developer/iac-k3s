@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ app_values.mongodb_namespace }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ app_values.mongodb_secret_name }}
+  namespace: {{ app_values.mongodb_namespace }}
+type: Opaque
+stringData:
+  MONGO_INITDB_ROOT_USERNAME: "{{ app_values.mongodb_root_username }}"
+  MONGO_INITDB_ROOT_PASSWORD: "{{ app_values.mongodb_root_password }}"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ app_values.mongodb_pvc_name }}
+  namespace: {{ app_values.mongodb_namespace }}
+spec:
+  storageClassName: {{ app_values.mongodb_storage_class }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ app_values.mongodb_storage_size }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ app_values.mongodb_deployment_name }}
+  namespace: {{ app_values.mongodb_namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ app_values.mongodb_deployment_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ app_values.mongodb_deployment_name }}
+    spec:
+      containers:
+        - name: mongodb
+          image: {{ app_values.mongodb_image }}
+          ports:
+            - containerPort: {{ app_values.mongodb_port }}
+          envFrom:
+            - secretRef:
+                name: {{ app_values.mongodb_secret_name }}
+          volumeMounts:
+            - name: mongodb-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongodb-storage
+          persistentVolumeClaim:
+            claimName: {{ app_values.mongodb_pvc_name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ app_values.mongodb_service_name }}
+  namespace: {{ app_values.mongodb_namespace }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ app_values.mongodb_port }}
+      targetPort: {{ app_values.mongodb_port }}
+  selector:
+    app: {{ app_values.mongodb_deployment_name }}
