@@ -57,7 +57,7 @@ jobs:
         run: |
           for file in inventory/*.yml group_vars/**/*.yml host_vars/**/*.yml playbooks/*.yml; do
             if [ -f "$file" ]; then
-              python3 -m yaml "$file" || exit 1
+              python3 -c "import sys, yaml; yaml.safe_load(open(sys.argv[1], encoding='utf-8'))" "$file" || exit 1
             fi
           done
           echo "✓ Sintaxis YAML válida"
